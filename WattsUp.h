@@ -1,6 +1,8 @@
 #ifndef __WATTSUP_H_
 #define __WATTSUP_H_
 
+#define MAX_STRING_LEN 256
+
 typedef enum { false, true } bool;
 
 typedef struct flags {

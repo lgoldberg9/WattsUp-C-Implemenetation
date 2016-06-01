@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ncurses.h> /* Text animation lib */
 #include <sys/utsname.h> /* Sys information lib */
+#include <unistd.h>
 
 void initialize_options(flags *options) {
   options->verbose = false;
@@ -95,7 +96,7 @@ void parse_inputs(flags *options, int argc, char **argv) {
 int main(int argc, char **argv) {
 
   flags *options;
-  utsname *buf;
+  struct utsname* buf;
   
   if ((options = malloc(sizeof(flags))) != 0) {
     fprintf(stderr, "Failed to allocate memory for flags.\n");
@@ -107,15 +108,27 @@ int main(int argc, char **argv) {
 
   if (!options->port.port) {
     options->port.port = true;
-    if ((utsname *buf = (utsname*) malloc(sizeof(utsname))) != 0) {
+    if ((buf = (struct utsname*) malloc(sizeof(struct utsname))) != 0) {
       fprintf(stderr, "Failed to allocate memory for UNAME.\n");
       return EXIT_FAILURE;
     }
     char *system = buf->sysname;
+    options->port.portDest = (char*) malloc(sizeof(char) * MAX_STRING_LEN);
     if (strcmp(system, "Darwin") == 0) {
       strcpy(options->port.portDest, "/dev/tty.usb-serial-A1000wT3");
     } else if (strcmp(system, "Linux") == 0) {
       strcpy(options->port.portDest, "/dev/ttyUSB0");
+    }
+  }
+  if (access(options->port.portDest, F_OK) == -1) {
+    if (!options->port.simulation) {
+      fprintf(stdout, "\nSerial port %s does not exist.\n", options->port.portDest);
+      fprintf(stdout, "Please make sure FDTI drivers are installed\n");
+      fprintf(stdout, " (http://www.ftdichip.com/Drivers/VCP.htm)\n");
+      fprintf(stdout, "Default ports are /dev/ttyUSB0 for Linux\n");
+      fprintf(stdout, " and /dev/tty.usbserial-A1000wT3 for Mac OS X\n");
+    } else {
+      fprintf(stdout, "\nFile %s does not exist.", options->port.portDest);
     }
   }
   
