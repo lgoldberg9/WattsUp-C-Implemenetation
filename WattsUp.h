@@ -3,7 +3,12 @@
 
 #define MAX_STRING_LEN 256
 
-typedef enum { false, true } bool;
+//typedef enum {false, true} bool;
+
+typedef struct {
+  bool outfile_b;
+  char *outfile_path;
+} outfile_t;
 
 typedef struct flags {
   bool verbose;
@@ -14,10 +19,7 @@ typedef struct flags {
   bool graphics_mode;
   bool logging;
   bool raw;
-  struct outfile {
-    bool outfile;
-    char *outfile_path;
-  } outfile;
+  outfile_t outfile;
   struct interval{
     bool active_interval;
     double interval;
