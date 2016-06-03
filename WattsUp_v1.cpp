@@ -1,5 +1,6 @@
-#include "WattsUp.h"
 #include "ArrayList.h"
+#include "Utilities.h"
+//#include "WattsUp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +47,7 @@ void meter_log(outfile_t logfile)
 
 	//Misc. Variables
 	unsigned int microseconds = 1000000;
-	string fields[100];
+	char* fields[100];
 	int counter=0;
 	char* word;
 
@@ -79,15 +80,23 @@ void meter_log(outfile_t logfile)
       		//if there are appropriate number of strings in the delimitations, get data
       		if (counter>5)
       		{
+      			/*
       			float W; //power
       			sscanf(fields[3], "%f", &W);
-      			W = W/10;
+      			W = W/10.0;
       			float V; //voltage
       			sscanf(fields[4], "%f", &V);
-      			W = V/10;
+      			W = V/10.0;
       			float A; //amps
       			sscanf(fields[5], "%f", &A);
-      			W = A/1000;
+      			W = A/1000.0;
+      			*/
+#include "ArrayList.h"
+
+      			double W, V, A;
+      			W = atof(fields[3]) / 10.0;
+      			V = atof(fields[4]) / 10.0;
+      			A = atof(fields[5]) / 1000.0;
 
       			//Print data onto screen
       			mvprintw(10, 10, "Logging to file ");
@@ -119,7 +128,8 @@ void meter_log(outfile_t logfile)
       		}
       	}
       	//Get next line
-      	getline (readfile, line);
+      	getline (readfile, current_line);
+      	strcpy(line, current_line.c_str());
       }//while loop
       endwin(); //close ncurses
   }//meter_log
@@ -135,10 +145,10 @@ void meter_log(outfile_t logfile)
   	options->logging = false;
   	options->raw = false;
   	options->outfile.outfile_b = false;
-  	options->outfile.outfile_path = "log.out";
+  	options->outfile.outfile_path = (char*)"log.out";
   	options->interval.active_interval = false;
-  	options->interval.interval = 1;
-  	options->port.port = false;
+  	options->interval.interval_d = 1;
+  	options->port.port_b = false;
   } //initialize_options
 
   void option_descr(void) {
@@ -202,13 +212,13 @@ void meter_log(outfile_t logfile)
   			case 's':
   			options->interval.active_interval = true;
   			if (index++ < argc) {
-  				options->interval.interval = atoi(argv[index]);
+  				options->interval.interval_d = atoi(argv[index]);
   			} else {
   				fprintf(stderr, "Not enough inputs provided.\n");
   			}
   			break;
   			case 'p':
-  			options->port.port = true;
+  			options->port.port_b = true;
   			if (index++ < argc) {
   				options->port.portDest = argv[index];
   			} else {
@@ -230,7 +240,7 @@ void meter_log(outfile_t logfile)
   	flags *options;
   	struct utsname* buf;
 
-  	if ((options = malloc(sizeof(flags))) == NULL) {
+  	if ((options = (flags*) malloc(sizeof(flags))) == NULL) {
   		fprintf(stderr, "Failed to allocate memory for flags.\n");
   		return EXIT_FAILURE;
   	}
@@ -238,8 +248,8 @@ void meter_log(outfile_t logfile)
   	initialize_options(options);
   	parse_inputs(options, argc, argv);
 
-  	if (!options->port.port) {
-  		options->port.port = true;
+  	if (!options->port.port_b) {
+  		options->port.port_b = true;
   		if ((buf = (struct utsname*) malloc(sizeof(struct utsname))) == NULL) {
   			fprintf(stderr, "Failed to allocate memory for UNAME.\n");
   			return EXIT_FAILURE;
@@ -268,8 +278,29 @@ void meter_log(outfile_t logfile)
   	}
   }
 
-  if (options->log == true)
-  	meter_log(args->outfile);
+  if (options->logging)
+  	meter_log(options->outfile);
+
+
+
+//Logans Code
+  /*
+  WattsUp *meter = initialize_wattsup(options->simulation_mode,
+  	options->port.portDest,
+  	options->interval.interval_d);
+  if (options->logging) {
+  	logging(meter, options->simulation_mode, options->raw,
+  		options->outfile.outfile_path);
+  }
+  /*
+  if (options->fetch) {
+  	fetch(meter, options->simulation_mode);
+  }
+  if (options->internal_mode) {
+  	mode(meter, options->simulation_mode, INTERNAL_MODE);
+  }
+*/
+
 
   return 0;
 }//main
