@@ -1,5 +1,6 @@
 #include "WattsUp.h"
 #include "ArrayList.h"
+#include "Utilities.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -147,16 +148,17 @@ int main(int argc, char **argv) {
       fprintf(stdout, "\nFile %s does not exist.", options->port.portDest);
     }
   }
-  Wattsup *meter = initialize_wattsup(options->simulation_mode,
+  WattsUp *meter = initialize_wattsup(options->simulation_mode,
 				      options->port.portDest,
 				      options->interval.interval);
   if (options->logging) {
-    logging(meter, options->outfile.outfile_path);
+    logging(meter, options->simulation_mode, options->raw,
+	    options->outfile.outfile_path);
   }
   if (options->fetch) {
-    fetch(meter);
+    fetch(meter, options->simulation_mode);
   }
   if (options->internal_mode) {
-    mode(meter, INTERNAL_MODE);
+    mode(meter, options->simulation_mode, INTERNAL_MODE);
   }
 }
