@@ -55,3 +55,12 @@ void mode(wattsUp *meter, bool sim, char runmode) {
     free(str_runmode);
   }
 }
+
+void fetch(WattsUp *meter, bool sim) {
+  if (!sim) {
+    while ((
+
+
+
+  }
+}

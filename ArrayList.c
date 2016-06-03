@@ -28,9 +28,9 @@ void clear_arr_list(array_list *arrList) {
 
 void ensure_capacity(array_list *arrList) {
   if (arrList->size == arrList->capacity) {
-    int *oldArr = arrList->array;
+    double *oldArr = arrList->array;
     if ((arrList->array =
-	 (int*) malloc(sizeof(int) * arrList->capacity * 2)) == NULL) {
+	 (double*) malloc(sizeof(int) * arrList->capacity * 2)) == NULL) {
       fprintf(stderr, "Failed to allocate memory for array.\n");
       exit(EXIT_FAILURE);
     }

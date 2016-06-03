@@ -7,7 +7,12 @@
 #define TCPIP_MODE 'T'
 #define FULLHANDLING 2
 
-typedef enum { false, true } bool;
+//typedef enum {false, true} bool;
+
+typedef struct {
+  bool outfile_b;
+  char *outfile_path;
+} outfile_t;
 
 typedef struct flags {
   bool verbose;
@@ -22,6 +27,8 @@ typedef struct flags {
     bool outfile;
     char *outfile_path;
   } outfile;
+  struct interval {
+  outfile_t outfile;
   struct interval {
     bool active_interval;
     double interval;
