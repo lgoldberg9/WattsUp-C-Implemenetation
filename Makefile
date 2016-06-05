@@ -9,7 +9,7 @@
 CC = gcc
 
 # Set appropriate compiling flags
-CFLAGS = -ansi -g -Wall -std=c11 -lm
+CFLAGS = -ansi -g -Wall -std=gnu99 -lm
 
 #----------------------------------------------------------------------------
 # build rules:

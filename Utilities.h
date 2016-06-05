@@ -1,55 +1,53 @@
-#include "ArrayList.h"
-#include <stdio.h>
-
 #ifndef __UTILITIES_H__
 #define __UTILITIES_H__
 
-#define MAX_STRING_LEN 256
-#define EXTERNAL_MODE 'E'
-#define INTERNAL_MODE 'I'
-#define TCPIP_MODE 'T'
-#define FULLHANDLING 2
+#define MAX_STRING_LEN 1024
+#define BAUDRATE B115200
 
-//typedef enum {false, true} bool;
+const static char *LW = "#L,W,3,E,,1;";
+const static char *RW = "#R,W,0;";
+const static char *LR = "#L,R,0;";
+
+typedef enum {false, true} bool;
+
 typedef struct outfile_def {
   bool outfile_b;
   char *outfile_path;
 } outfile_t;
 
-
 typedef struct port_def {
-    bool port_b;
-    char *portDest;
-  } port_t;
-
+  bool port_b;
+  char *port_dest;
+} port_t;
 
 typedef struct interval_def {
-    bool active_interval;
-    double interval_d;
-  } interval_t;
+  bool active_interval;
+  int interval_d;
+} interval_t;
+
+typedef struct sample_def {
+  bool sample_b;
+  int sample_size;
+} sample_t;
 
 typedef struct flags {
-  bool verbose;
   bool debug;
-  bool simulation_mode;
-  bool internal_mode;
-  bool fetch;
   bool graphics_mode;
   bool logging;
-  bool raw;
-  outfile_t outfile;
-  interval_t interval;
-  port_t port;
+  sample_t *sample;
+  outfile_t *outfile;
+  interval_t *interval;
+  port_t *port;
 } flags;
 
 typedef struct WattsUp {
   int serial_descr;
-  FILE* logfile;
-  int interval;
-  array_list *time;
-  array_list *power;
-  array_list *voltage;
-  array_list *current;  
+  int sample_size;
+  double interval;
+  double *time;
+  double *power;
+  double *voltage;
+  double *current;  
 } WattsUp;
 
 #endif

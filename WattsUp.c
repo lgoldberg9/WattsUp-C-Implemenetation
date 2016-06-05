@@ -1,49 +1,51 @@
 #define _GNU_SOURCE
-#include "ArrayList.h"
 #include "Utilities.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <ncurses.h> /* Text animation lib */
-#include <sys/utsname.h> /* Sys information lib */
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h>   /* Error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
 #include <time.h>
 
-WattsUp* initialize_wattsup(bool sim, char *port, int interval) {
+WattsUp* initialize_wattsup(flags *options) {
+
   WattsUp *meter = (WattsUp*) malloc(sizeof(WattsUp));
-  if (sim) {
-    meter->serial_descr = open(port, O_RDWR);
+  int file_descr = 0;
+
+  if ((file_descr = open(options->port->port_dest, O_RDWR | O_NOCTTY | O_NDELAY))
+      != -1) {
+    meter->serial_descr = file_descr;
+    struct termios serial_options;
+    tcgetattr(meter->serial_descr, &serial_options);
+    cfsetispeed(&serial_options, B115200);
+    cfsetospeed(&serial_options, B115200);
+    tcsetattr(file_descr, TCSANOW, &serial_options);
   } else {
-    int file_descr;
-    if ((file_descr = open(port, O_RDWR)) != -1) {
-      meter->serial_descr = file_descr;
-      struct termios serial_options;
-      tcgetattr(meter->serial_descr, &serial_options);
-      cfsetispeed(&serial_options, B115200);
-      cfsetospeed(&serial_options, B115200);
-      tcsetattr(file_descr, TCSANOW, &serial_options);
-    } else {
-      char *error = "initialize_wattsup: Unable to open %s";
-      asprintf(&error, port);
-      perror(error);
-      free(error); 
-      exit(EXIT_FAILURE);
-    }
+    perror("initialize_wattsup - Unable to open port");
+    exit(EXIT_FAILURE);
   }
-  meter->logfile = NULL;
-  meter->interval = interval;
-  meter->time = (array_list*) malloc(sizeof(array_list));
-  meter->power = (array_list*) malloc(sizeof(array_list));
-  meter->voltage = (array_list*) malloc(sizeof(array_list));
-  meter->current = (array_list*) malloc(sizeof(array_list));
+  /*FILE *logfile_tmp = NULL;
+  if ((logfile_tmp = freopen(logfile, "w", stdout)) == NULL) {
+    perror("initialize_wattsup - Unable to open file");
+    exit(EXIT_FAILURE);
+    } */
+  meter->sample_size = options->sample->sample_size;
+  meter->interval = options->interval->interval_d;
+  meter->time = (double*) malloc(sizeof(double) * meter->sample_size);
+  meter->power = (double*) malloc(sizeof(double) * meter->sample_size);
+  meter->voltage = (double*) malloc(sizeof(double) * meter->sample_size);
+  meter->current = (double*) malloc(sizeof(double) * meter->sample_size);
+  
   return meter;
 }
 
 void clean_wattsup(WattsUp *meter) {
   if (meter != NULL) {
+    close(meter->serial_descr);
+    fclose(stdout);
     free(meter->time);
     free(meter->power);
     free(meter->voltage);
@@ -52,7 +54,7 @@ void clean_wattsup(WattsUp *meter) {
   }
 }
 
-void mode(WattsUp *meter, bool sim, char runmode) {
+/*void mode(WattsUp *meter, bool sim, char runmode) {
   if (!sim) {
     char *str_runmode;
     if ((asprintf(&str_runmode, "#L,W,3,%d,,%d", runmode, meter->interval)) != -1) {
@@ -77,7 +79,7 @@ void mode(WattsUp *meter, bool sim, char runmode) {
       exit(EXIT_FAILURE);
     }
   }
-}
+  }*/
 /*
 void fetch(WattsUp *meter, bool sim) {
   if (!sim) {
@@ -115,28 +117,56 @@ void fetch(WattsUp *meter, bool sim) {
   }
 }
 */
-void logging(WattsUp *meter, bool sim, bool raw, char *logfile) {
-  fprintf(stdout, "Logging...\n");
-  if (!sim) {
-    mode(meter, sim, EXTERNAL_MODE);
-  }
-  if (logfile != NULL) {
-    meter->logfile = fopen(logfile, "w");
-  }
-  if (raw) {
-    // do something involving try catch
-  }
+void logging(WattsUp *meter) {
+  fprintf(stdout, "Logging...\n");  
   
-  char *serial_line = NULL;
-  size_t line_len = 0;
-  getline(&serial_line, &line_len, meter->serial_file);
-  int n = 0;
+  char buf[MAX_STRING_LEN];
+  char line[MAX_STRING_LEN];
+  char *word;
+  int sample = meter->sample_size;
 
-  /* Begin ncurses mode. */
-  /*
-  initsrc();
-  noecho();
-  cbreak();
-  */
+  memset(&buf[0], 0, sizeof(buf));
+
+  write(meter->serial_descr, RW, strlen(RW));
   
+  for (int time = 0; time < sample; time++) {
+
+    read(meter->serial_descr, buf, sizeof(buf));
+    for (int index = 0; index < MAX_STRING_LEN; index++) {
+      line[index] = buf[index];
+    }
+
+    word = strtok(line, ",");
+    
+    if (word != NULL) {
+      meter->time[time] = time * meter->interval;
+      for (int word_parse = 0; word_parse < 6; word_parse++) {
+	switch (word_parse) {
+	case 3:
+	  meter->current[time] = atof(word) / 1000.0;
+	  break;
+	case 4:
+	  meter->voltage[time] = atof(word) / 10.0;
+	  break;
+	case 5:
+	  meter->power[time] = atof(word) / 10.0;
+	  break;
+	default:
+	  break;
+	}
+	word = strtok(NULL, ",");
+      }
+    } else {
+      time--;
+    }
+    
+    usleep(1000000 * meter->interval);
+  }
+
+  fprintf(stdout, "Time\t Amps\t Volts\t Watts\n");
+  for (int index = 0; index < sample; index++) {
+    fprintf(stdout, "%.0lf\t%.3lf\t%.2lf\t%.3lf\n", meter->time[index],
+	    meter->current[index], meter->voltage[index], meter->power[index]);
+    
+  }
 }
