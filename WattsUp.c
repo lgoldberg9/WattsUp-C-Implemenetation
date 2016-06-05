@@ -33,7 +33,7 @@ WattsUp* initialize_wattsup(flags *options) {
     exit(EXIT_FAILURE);
     } */
   meter->sample_size = options->sample->sample_size;
-  meter->interval = options->interval->interval_d;
+  meter->interval = options->interval_d;
   meter->time = (double*) malloc(sizeof(double) * meter->sample_size);
   meter->power = (double*) malloc(sizeof(double) * meter->sample_size);
   meter->voltage = (double*) malloc(sizeof(double) * meter->sample_size);

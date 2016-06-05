@@ -6,6 +6,21 @@
 #include <sys/utsname.h> /* Sys information lib */
 #include <unistd.h>
 
+void option_descr(void) {
+  fprintf(stdout, "usage: wattsup [-h] [-d] [-g] [-l] [-n SAMPLE] ");
+  fprintf(stdout, "[-o OUTFILE]\t\t[-s INTERVAL] [-p PORT]\n\n");
+  fprintf(stdout, "Get data from Watts Up power meter.\n\n");
+  fprintf(stdout, "optional arguments:\n");
+  fprintf(stdout, "  -h,\t\t show this help message and exit\n");
+  fprintf(stdout, "  -d,\t\t debugging output\n");
+  fprintf(stdout, "  -g,\t\t Graphical output: plot the data in real time\n");
+  fprintf(stdout, "  -l,\t\t log data in real time\n");
+  fprintf(stdout, "  -n SAMPLE,\t\t provide sample size\n");
+  fprintf(stdout, "  -o OUTFILE,\t Output file\n");
+  fprintf(stdout, "  -s INTERVAL,\t Sample interval\n");
+  fprintf(stdout, "  -p PORT,\t USB serial port\n");
+}
+
 flags* initialize_options() {
 
   flags *options;
@@ -18,7 +33,7 @@ flags* initialize_options() {
   options->debug = false;
   options->graphics_mode = false;
   options->logging = false;
-
+  
   if ((options->sample = (sample_t*) malloc(sizeof(sample_t))) == NULL) {
     fprintf(stderr, "Failed to allocate memory for options->sample.\n");
     exit(EXIT_FAILURE);
@@ -33,12 +48,7 @@ flags* initialize_options() {
   options->outfile->outfile_b = false;
   options->outfile->outfile_path = "log.out";
 
-  if ((options->interval = (interval_t*) malloc(sizeof(interval_t))) == NULL) {
-    fprintf(stderr, "Failed to allocate memory for options->interval.\n");
-    exit(EXIT_FAILURE);
-  }
-  options->interval->active_interval = false;
-  options->interval->interval_d = 1;
+  options->interval_d = 1;
 
   if ((options->port = (port_t*) malloc(sizeof(port_t))) == NULL) {
     fprintf(stderr, "Failed to allocate memory for options->port.\n");
@@ -51,22 +61,16 @@ flags* initialize_options() {
 }
 
 void clean_options(flags *options) {
-  
-}
-
-void option_descr(void) {
-  fprintf(stdout, "usage: wattsup [-h] [-d] [-g] [-l] [-n SAMPLE] ");
-  fprintf(stdout, "[-o OUTFILE]\t\t[-s INTERVAL] [-p PORT]\n\n");
-  fprintf(stdout, "Get data from Watts Up power meter.\n\n");
-  fprintf(stdout, "optional arguments:\n");
-  fprintf(stdout, "  -h,\t\t show this help message and exit\n");
-  fprintf(stdout, "  -d,\t\t debugging output\n");
-  fprintf(stdout, "  -g,\t\t Graphical output: plot the data in real time\n");
-  fprintf(stdout, "  -l,\t\t log data in real time\n");
-  fprintf(stdout, "  -n SAMPLE,\t\t provide sample size\n");
-  fprintf(stdout, "  -o OUTFILE,\t Output file\n");
-  fprintf(stdout, "  -s INTERVAL,\t Sample interval\n");
-  fprintf(stdout, "  -p PORT,\t USB serial port\n");
+  if (!options->port->port_b) {
+    free(options->port->port_dest);
+  }
+  free(options->sample);
+  if (options->outfile->outfile_b) {
+    free(options->outfile->outfile_path);
+  }
+  free(options->outfile);
+  free(options->port);
+  free(options);
 }
 
 void parse_inputs(flags *options, int argc, char **argv) {
@@ -101,7 +105,7 @@ void parse_inputs(flags *options, int argc, char **argv) {
       break;
     case 's':
       if (index++ < argc && argv[index][0] != '-') {
-	options->interval->interval_d = atof(argv[index]);
+	options->interval_d = atof(argv[index]);
       } else {
 	fprintf(stderr, "Not enough inputs provided to -s.\n");
       }
@@ -166,7 +170,8 @@ int main(int argc, char **argv) {
     logging(meter);
   }
 
-  //clean_wattsup(meter);
+  clean_wattsup(meter);
+  clean_options(options);
   
   return EXIT_SUCCESS;
   

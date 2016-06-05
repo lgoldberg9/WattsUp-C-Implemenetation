@@ -20,11 +20,6 @@ typedef struct port_def {
   char *port_dest;
 } port_t;
 
-typedef struct interval_def {
-  bool active_interval;
-  int interval_d;
-} interval_t;
-
 typedef struct sample_def {
   bool sample_b;
   int sample_size;
@@ -36,7 +31,7 @@ typedef struct flags {
   bool logging;
   sample_t *sample;
   outfile_t *outfile;
-  interval_t *interval;
+  double interval_d;
   port_t *port;
 } flags;
 
