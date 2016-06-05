@@ -143,13 +143,13 @@ void logging(WattsUp *meter) {
       for (int word_parse = 0; word_parse < 6; word_parse++) {
 	switch (word_parse) {
 	case 3:
-	  meter->current[time] = atof(word) / 1000.0;
+	  meter->power[time] = atof(word) / 10.0;
 	  break;
 	case 4:
 	  meter->voltage[time] = atof(word) / 10.0;
 	  break;
 	case 5:
-	  meter->power[time] = atof(word) / 10.0;
+	  meter->current[time] = atof(word) / 1000.0;
 	  break;
 	default:
 	  break;
@@ -162,11 +162,26 @@ void logging(WattsUp *meter) {
     
     usleep(1000000 * meter->interval);
   }
-
+  
+  double summary_totals[3] = {0, 0, 0};
+  
   fprintf(stdout, "Time\t Amps\t Volts\t Watts\n");
   for (int index = 0; index < sample; index++) {
-    fprintf(stdout, "%.0lf\t%.3lf\t%.2lf\t%.3lf\n", meter->time[index],
+    fprintf(stdout, "%.3lf\t%.3lf\t%.2lf\t%.3lf\n", meter->time[index],
 	    meter->current[index], meter->voltage[index], meter->power[index]);
-    
+    summary_totals[0] += meter->current[index];
+    summary_totals[1] += meter->voltage[index];
+    summary_totals[2] += meter->power[index];
   }
+
+  fprintf(stdout, "\n======= Summary Statistics =======\n");
+  fprintf(stdout, "Total Time:\t %.3lf seconds\n", sample * meter->interval);  
+  fprintf(stdout, "Average Amps:\t %.4lf A\n",
+	  summary_totals[0] / sample);
+  fprintf(stdout, "Average Volts:\t %.4lf V\n",
+	  summary_totals[1] / sample);
+  fprintf(stdout, "Average Watts:\t %.4lf W\n",
+	  summary_totals[2] / sample);
+  fprintf(stdout, "Total Energy:\t %.4lf J\n", summary_totals[2] * meter->interval);
+  
 }
