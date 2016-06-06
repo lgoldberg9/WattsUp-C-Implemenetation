@@ -7,8 +7,10 @@
 #include <unistd.h>
 
 /*
-
+Prints out all the options for the user
+on receiving the -h flag
  */
+
 void option_descr(void) {
   fprintf(stdout, "usage: wattsup [-h] [-d] [-g] [-l] [-n SAMPLE] ");
   fprintf(stdout, "[-o OUTFILE] [-s INTERVAL]\n\t\t [-p PORT]\n\n");
@@ -25,7 +27,7 @@ void option_descr(void) {
 }
 
 /* 
-
+Allocating memory and initializing
  */
 flags* initialize_options() {
 
@@ -64,10 +66,10 @@ flags* initialize_options() {
   options->port->port_dest = "/dev/ttyUSB0";
 
   return options;
-}
+}//initialize_options
 
 /*
-
+Freeing allocated memory
  */
 void clean_options(flags *options) {
   if (!options->port->port_b) {
@@ -77,10 +79,10 @@ void clean_options(flags *options) {
   free(options->outfile);
   free(options->port);
   free(options);
-}
+}//clean_options
 
 /*
-
+Parses flags and changes program accordingly
  */
 void parse_inputs(flags *options, int argc, char **argv) {
 
@@ -136,10 +138,10 @@ void parse_inputs(flags *options, int argc, char **argv) {
       break;
     }
   }
-}
+}//parse_inputs
 
 /*
-
+Allocating and initializing the serial port
  */
 void create_port(flags *options) {
 
@@ -160,7 +162,8 @@ void create_port(flags *options) {
     strcpy(options->port->port_dest, "/dev/ttyUSB0");
   }
   free(buf);
-}
+}//create_port
+
 
 int main(int argc, char **argv) {
   
@@ -191,4 +194,4 @@ int main(int argc, char **argv) {
   
   return EXIT_SUCCESS;
   
-}
+}//main
