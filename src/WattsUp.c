@@ -32,10 +32,11 @@ WattsUp* initialize_wattsup(flags *options) {
     if ((logfile_tmp = fopen(options->outfile->outfile_path, "w")) == NULL) {
       perror("initialize_wattsup - Unable to open file");
       exit(EXIT_FAILURE);
-    } else {
-      meter->logfile = logfile_tmp;
-    }
+    } 
+  } else {
+    logfile_tmp = stdout;
   }
+  meter->logfile = logfile_tmp;
   meter->sample_size = options->sample->sample_size;
   meter->interval = options->interval_d;
   meter->time = (double*) malloc(sizeof(double) * meter->sample_size);
@@ -125,7 +126,7 @@ void logging(WattsUp *meter) {
   fprintf(meter->logfile, "Average Watts:\t %.4lf W\n",
 	  summary_totals[2] / sample);
   fprintf(meter->logfile, "Total Energy:\t %.4lf J\n",
-	  summary_totals[2] * meter->interval);
+	  summary_totals[2] * meter->interval * sample);
 
   fprintf(stdout, "Logging complete.\n");
   
