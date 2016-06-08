@@ -154,7 +154,7 @@ void logging(WattsUp *meter) {
   //printing to the output file (stdout default)
   fprintf(meter->logfile, "Time\t Amps\t Volts\t Watts\n");
   for (int index = 0; index < sample; index++) {
-    fprintf(meter->logfile, "%.3lf\t%.3lf\t%.2lf\t%.3lf\t.3lf\n",
+    fprintf(meter->logfile, "%.3lf\t%.3lf\t%.2lf\t%.3lf\t%.3lf\n",
 	    meter->time[index], meter->current[index], meter->voltage[index],
 	    meter->power[index], meter->energy[index]);
     summary_totals[0] += meter->current[index];
