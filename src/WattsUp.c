@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include "Utilities.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,7 +68,6 @@ WattsUp* initialize_wattsup(flags *options) {
   meter->power = (double*) malloc(sizeof(double) * meter->sample_size);
   meter->voltage = (double*) malloc(sizeof(double) * meter->sample_size);
   meter->current = (double*) malloc(sizeof(double) * meter->sample_size);
-  meter->energy = (double*) malloc(sizeof(double) * meter->sample_size);
   
   return meter;
 }//initialize_wattsup
@@ -84,7 +82,6 @@ void clean_wattsup(WattsUp *meter) {
     free(meter->power);
     free(meter->voltage);
     free(meter->current);
-    free(meter->energy);
     free(meter);
   }
 }//clean_wattsup
@@ -116,12 +113,13 @@ void logging(WattsUp *meter) {
     }
 
     //Delimit by commas (',')
+    //printf("%s\n", line);
     word = strtok(line, ",");
     if (word != NULL) {
       meter->time[time] = time * meter->interval;
 
       //Parse Data
-      for (int word_parse = 0; word_parse < 6; word_parse++) {
+      for (int word_parse = 0; word_parse < 15; word_parse++) {
 	switch (word_parse) {
 	case 3: //Current in Amps
 	  meter->power[time] = atof(word) / 10.0;
@@ -132,8 +130,6 @@ void logging(WattsUp *meter) {
 	case 5: //Power
 	  meter->current[time] = atof(word) / 1000.0;
 	  break;
-	case 6:
-	  meter->energy[time] = atof(word) / 10.0;
 	default:
 	  break;
 	}
@@ -154,13 +150,12 @@ void logging(WattsUp *meter) {
   //printing to the output file (stdout default)
   fprintf(meter->logfile, "Time\t Amps\t Volts\t Watts\n");
   for (int index = 0; index < sample; index++) {
-    fprintf(meter->logfile, "%.3lf\t%.3lf\t%.2lf\t%.3lf\t%.3lf\n",
+    fprintf(meter->logfile, "%.3lf\t%.3lf\t%.2lf\t%.3lf\n",
 	    meter->time[index], meter->current[index], meter->voltage[index],
-	    meter->power[index], meter->energy[index]);
+	    meter->power[index]);
     summary_totals[0] += meter->current[index];
     summary_totals[1] += meter->voltage[index];
     summary_totals[2] += meter->power[index];
-    summary_totals[3] += meter->energy[index];
   }
 
   fprintf(meter->logfile, "\n======= Summary Statistics =======\n");
@@ -173,7 +168,7 @@ void logging(WattsUp *meter) {
   fprintf(meter->logfile, "Average Watts:\t %.4lf W\n",
 	  summary_totals[2] / sample);
   fprintf(meter->logfile, "Total Energy:\t %.4lf J\n",
-	  summary_totals[3]);
+	  summary_totals[2] * meter->interval);
 
   fprintf(stdout, "Logging complete.\n");
 
