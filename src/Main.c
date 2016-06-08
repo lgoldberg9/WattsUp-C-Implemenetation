@@ -7,9 +7,9 @@
 #include <unistd.h>
 
 /*
-Prints out all the options for the user
-on receiving the -h flag
- */
+  Prints out all the options for the user
+  on receiving the -h flag
+*/
 
 void option_descr(void) {
   fprintf(stdout, "usage: wattsup [-h] [-d] [-g] [-l] [-n SAMPLE] ");
@@ -27,8 +27,8 @@ void option_descr(void) {
 }
 
 /* 
-Allocating memory and initializing
- */
+   Allocating memory and initializing
+*/
 flags* initialize_options() {
 
   flags *options;
@@ -69,8 +69,8 @@ flags* initialize_options() {
 }//initialize_options
 
 /*
-Freeing allocated memory
- */
+  Freeing allocated memory
+*/
 void clean_options(flags *options) {
   if (!options->port->port_b) {
     free(options->port->port_dest);
@@ -82,8 +82,8 @@ void clean_options(flags *options) {
 }//clean_options
 
 /*
-Parses flags and changes program accordingly
- */
+  Parses flags and changes program accordingly
+*/
 void parse_inputs(flags *options, int argc, char **argv) {
 
   for (int index = 1; index < argc; index++) {
@@ -141,8 +141,8 @@ void parse_inputs(flags *options, int argc, char **argv) {
 }//parse_inputs
 
 /*
-Allocating and initializing the serial port
- */
+  Allocating and initializing the serial port
+*/
 void create_port(flags *options) {
 
   struct utsname* buf;
@@ -164,6 +164,13 @@ void create_port(flags *options) {
   free(buf);
 }//create_port
 
+
+/*
+  Main.c
+  Program to log power and energy information coming from the WattsUp Pro Power Meter.
+  User specifies options (such as sampling size) via flags and program runs accordingly.
+  To see all possible flags, run program with '-h' flag
+*/
 
 int main(int argc, char **argv) {
   

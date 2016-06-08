@@ -37,7 +37,7 @@ typedef struct flags {
   double interval_d;
   port_t *port;
 } flags;
-
+-
 typedef struct WattsUp {
   int serial_descr;
   FILE *logfile;
@@ -46,7 +46,8 @@ typedef struct WattsUp {
   double *time;
   double *power;
   double *voltage;
-  double *current;  
+  double *current;
+  double *energy;
 } WattsUp;
 
 /* 
