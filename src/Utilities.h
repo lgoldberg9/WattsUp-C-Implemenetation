@@ -47,7 +47,6 @@ typedef struct WattsUp {
   double *power;
   double *voltage;
   double *current;
-  double *energy;
 } WattsUp;
 
 /* 
