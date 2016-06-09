@@ -3,28 +3,34 @@
 #include <pthread.h>
 #include <unistd.h>
 
+int foo = 0;
+
 long fib(long x) {
   if (x == 0)
     return 0;
-  else if
-    (x == 1)
+  else if (x == 1)
     return 1;
   else
     return fib(x-1) + fib(x-2);
 }
 
-void *WattsUp()
-{
-  system("bin/WattsUp -n 20 -l -o data/outfile.log -s 0.5");
+void *WattsUp() {
+  int noob = system("bin/WattsUp -n 20 -l -s 1");
+  printf("noob: %d\n", noob);
+  foo = 1;
 }
 
 int main(void) {
   pthread_t thread;
-  
+
   if (pthread_create(&thread, NULL, WattsUp, NULL)) {
     fprintf(stderr, "Error creating thread\n");
-    return 1;
+    exit(EXIT_FAILURE);
   }
-  printf("%ld\n", fib(45));
-  return 0;
+  
+  fib(45);
+
+  pthread_join(thread, NULL);
+  
+  exit(EXIT_SUCCESS);
 }

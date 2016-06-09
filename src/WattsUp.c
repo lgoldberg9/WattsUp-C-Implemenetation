@@ -13,7 +13,7 @@
 //function used for stopwatch functionality
 static size_t time_ms() {
   struct timeval tv;
-  if(gettimeofday(&tv, NULL) == -1) {
+  if (gettimeofday(&tv, NULL) == -1) {
     perror("gettimeofday");
     exit(2);
   }
@@ -92,13 +92,12 @@ void clean_wattsup(WattsUp *meter) {
 void logging(WattsUp *meter) {
   fprintf(stdout, "Logging...\n");  
   
-  char buf[MAX_STRING_LEN];
+  char buf[1];
   char line[MAX_STRING_LEN];
-  char *word;
   int sample = meter->sample_size;
   size_t time_start, time_end, run_time;
 
-  memset(&buf[0], 0, sizeof(buf));
+  memset(&buf[0], 0, sizeof(char));
 
   //Necessary to get WattsUp meter to send data back to the computer
   write(meter->serial_descr, "#R,W,0;", strlen("#R,W,0;"));
@@ -107,27 +106,29 @@ void logging(WattsUp *meter) {
   for (int time = 0; time < sample; time++) {
     time_start = time_ms();
     //Read incoming data packet
-    read(meter->serial_descr, buf, sizeof(buf));
-    for (int index = 0; index < MAX_STRING_LEN; index++) {
-      line[index] = buf[index];
+    for (int index = 0; buf[0] != '\n' && index < MAX_STRING_LEN - 1; index++) {
+      read(meter->serial_descr, buf, sizeof(char));
+      line[index] = buf[0];
     }
-
+    line[MAX_STRING_LEN - 1] = '\0';
+    
     //Delimit by commas (',')
-    //printf("%s\n", line);
-    word = strtok(line, ",");
+    printf("line: %s\n", line);
+    char *word = strtok(line, ",");
     if (word != NULL) {
       meter->time[time] = time * meter->interval;
 
       //Parse Data
-      for (int word_parse = 0; word_parse < 15; word_parse++) {
+      for (int word_parse = 0; word_parse < 6 && word != NULL; word_parse++) {
+	printf("word: %s\n", word);
 	switch (word_parse) {
-	case 3: //Current in Amps
+	case 3: //Power
 	  meter->power[time] = atof(word) / 10.0;
 	  break;
 	case 4: //Volts
 	  meter->voltage[time] = atof(word) / 10.0;
 	  break;
-	case 5: //Power
+	case 5: //Current in Amps
 	  meter->current[time] = atof(word) / 1000.0;
 	  break;
 	default:
@@ -135,14 +136,14 @@ void logging(WattsUp *meter) {
 	}
 	word = strtok(NULL, ",");
       }
-    } 
-    else { 
+    } else { 
       time--;
     }
     //Sleep for given interval - maybe need to make more accurate?
     time_end = time_ms();
     run_time = time_end - time_start;
-    usleep((1000000 * meter->interval)- run_time*1000);
+    printf("%lu, %lu, %lu\n", run_time, time_start, time_end);
+    usleep((1000000 * meter->interval)- run_time/1000);
   }//for-loop
 
   double summary_totals[4] = {0, 0, 0, 0};
